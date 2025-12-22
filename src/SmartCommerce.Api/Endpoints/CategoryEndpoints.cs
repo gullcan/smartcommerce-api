@@ -28,16 +28,17 @@ public static class CategoryEndpoints
             return Results.Ok(ApiResponse<CategoryResponseDto>.Ok(data, "Category retrieved."));
         });
 
-        // POST /categories
+        // POST /categories (Admin only)
         group.MapPost("/", async (CategoryCreateDto dto, ICategoryService service, CancellationToken ct) =>
         {
             var created = await service.CreateAsync(dto, ct);
 
             return Results.Created($"/categories/{created.Id}",
                 ApiResponse<CategoryResponseDto>.Ok(created, "Category created."));
-        });
+        })
+        .RequireAuthorization("AdminOnly");
 
-        // PUT /categories/{id}
+        // PUT /categories/{id} (Admin only)
         group.MapPut("/{id}", async (string id, CategoryUpdateDto dto, ICategoryService service, CancellationToken ct) =>
         {
             if (!Guid.TryParse(id, out var categoryId))
@@ -45,9 +46,10 @@ public static class CategoryEndpoints
 
             var updated = await service.UpdateAsync(categoryId, dto, ct);
             return Results.Ok(ApiResponse<CategoryResponseDto>.Ok(updated, "Category updated."));
-        });
+        })
+        .RequireAuthorization("AdminOnly");
 
-        // DELETE /categories/{id} (Soft delete)
+        // DELETE /categories/{id} (Admin only)
         group.MapDelete("/{id}", async (string id, ICategoryService service, CancellationToken ct) =>
         {
             if (!Guid.TryParse(id, out var categoryId))
@@ -55,7 +57,8 @@ public static class CategoryEndpoints
 
             await service.DeleteAsync(categoryId, ct);
             return Results.Ok(ApiResponse<object>.OkEmpty("Category deleted."));
-        });
+        })
+        .RequireAuthorization("AdminOnly");
 
         return app;
     }

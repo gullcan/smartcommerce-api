@@ -1,7 +1,8 @@
 using System.Net;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using SmartCommerce.Application.Common;
 using SmartCommerce.Application.Common.Exceptions;
-using Microsoft.EntityFrameworkCore;
 
 namespace SmartCommerce.Api.Middlewares;
 
@@ -33,15 +34,26 @@ public sealed class ExceptionHandlingMiddleware
     {
         var (statusCode, message) = ex switch
         {
+            // App exceptions
             ValidationException ve => (HttpStatusCode.BadRequest, ve.Message),
             NotFoundException nfe => (HttpStatusCode.NotFound, nfe.Message),
             ConflictException ce => (HttpStatusCode.Conflict, ce.Message),
 
-            UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Unauthorized."),
+            // Request/JSON problems (önceden 500'e düşebiliyordu)
+            JsonException => (HttpStatusCode.BadRequest, "Invalid JSON payload."),
+            BadHttpRequestException => (HttpStatusCode.BadRequest, "Bad request."),
+            FormatException => (HttpStatusCode.BadRequest, "Invalid request format."),
+
+            // Auth
+            UnauthorizedAccessException uae => (HttpStatusCode.Unauthorized, uae.Message),
+
+            // DB
             DbUpdateException => (HttpStatusCode.Conflict, "Database update conflict."),
 
             _ => (HttpStatusCode.InternalServerError, "Internal server error.")
         };
+
+        if (context.Response.HasStarted) return;
 
         context.Response.StatusCode = (int)statusCode;
         context.Response.ContentType = "application/json";
