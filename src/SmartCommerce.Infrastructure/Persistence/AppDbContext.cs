@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using SmartCommerce.Domain.Entities;
 
@@ -8,15 +9,19 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<User> Users => Set<User>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<Review> Reviews => Set<Review>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Soft delete global filter
-        modelBuilder.Entity<User>().HasQueryFilter(x => !x.IsDeleted);
+        // Tüm IEntityTypeConfiguration sınıflarını otomatik uygula
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        // Unique constraints (409 Conflict altyapısı)
-        modelBuilder.Entity<User>().HasIndex(x => x.Username).IsUnique();
-        modelBuilder.Entity<User>().HasIndex(x => x.Email).IsUnique();
+        // Soft delete global filter: BaseEntity türevi olan tüm tablolara uygula
+        ApplySoftDeleteQueryFilters(modelBuilder);
 
         base.OnModelCreating(modelBuilder);
     }
@@ -31,6 +36,24 @@ public class AppDbContext : DbContext
     {
         ApplyTimestamps();
         return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void ApplySoftDeleteQueryFilters(ModelBuilder modelBuilder)
+    {
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            var clrType = entityType.ClrType;
+            if (!typeof(BaseEntity).IsAssignableFrom(clrType))
+                continue;
+
+            // e => !e.IsDeleted
+            var parameter = Expression.Parameter(clrType, "e");
+            var isDeletedProperty = Expression.Property(parameter, nameof(BaseEntity.IsDeleted));
+            var filterBody = Expression.Equal(isDeletedProperty, Expression.Constant(false));
+            var lambda = Expression.Lambda(filterBody, parameter);
+
+            modelBuilder.Entity(clrType).HasQueryFilter(lambda);
+        }
     }
 
     private void ApplyTimestamps()
