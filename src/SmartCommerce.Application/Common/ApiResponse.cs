@@ -9,6 +9,9 @@ public sealed class ApiResponse<T>
     public static ApiResponse<T> Ok(T data, string message = "OK")
         => new ApiResponse<T> { Success = true, Message = message, Data = data };
 
+    public static ApiResponse<T> OkEmpty(string message = "OK")
+        => new ApiResponse<T> { Success = true, Message = message, Data = default };
+
     public static ApiResponse<T> Fail(string message)
         => new ApiResponse<T> { Success = false, Message = message, Data = default };
 }
