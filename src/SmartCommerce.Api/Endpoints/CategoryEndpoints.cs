@@ -1,6 +1,5 @@
 using SmartCommerce.Application.Abstractions.Services;
 using SmartCommerce.Application.Common;
-using SmartCommerce.Application.Common.Exceptions;
 using SmartCommerce.Application.DTOs.Categories;
 
 namespace SmartCommerce.Api.Endpoints;
@@ -25,38 +24,17 @@ public static class CategoryEndpoints
             if (!Guid.TryParse(id, out var categoryId))
                 return Results.BadRequest(ApiResponse<object>.Fail("Invalid id format."));
 
-            try
-            {
-                var data = await service.GetByIdAsync(categoryId, ct);
-                return Results.Ok(ApiResponse<CategoryResponseDto>.Ok(data, "Category retrieved."));
-            }
-            catch (NotFoundException ex)
-            {
-                return Results.NotFound(ApiResponse<object>.Fail(ex.Message));
-            }
+            var data = await service.GetByIdAsync(categoryId, ct);
+            return Results.Ok(ApiResponse<CategoryResponseDto>.Ok(data, "Category retrieved."));
         });
 
         // POST /categories
         group.MapPost("/", async (CategoryCreateDto dto, ICategoryService service, CancellationToken ct) =>
         {
-            try
-            {
-                var created = await service.CreateAsync(dto, ct);
-                return Results.Created($"/categories/{created.Id}",
-                    ApiResponse<CategoryResponseDto>.Ok(created, "Category created."));
-            }
-            catch (ValidationException ex)
-            {
-                return Results.BadRequest(ApiResponse<object>.Fail(ex.Message));
-            }
-            catch (ConflictException ex)
-            {
-                return Results.Conflict(ApiResponse<object>.Fail(ex.Message));
-            }
-            catch
-            {
-                return Results.Json(ApiResponse<object>.Fail("Internal server error."), statusCode: 500);
-            }
+            var created = await service.CreateAsync(dto, ct);
+
+            return Results.Created($"/categories/{created.Id}",
+                ApiResponse<CategoryResponseDto>.Ok(created, "Category created."));
         });
 
         // PUT /categories/{id}
@@ -65,27 +43,8 @@ public static class CategoryEndpoints
             if (!Guid.TryParse(id, out var categoryId))
                 return Results.BadRequest(ApiResponse<object>.Fail("Invalid id format."));
 
-            try
-            {
-                var updated = await service.UpdateAsync(categoryId, dto, ct);
-                return Results.Ok(ApiResponse<CategoryResponseDto>.Ok(updated, "Category updated."));
-            }
-            catch (ValidationException ex)
-            {
-                return Results.BadRequest(ApiResponse<object>.Fail(ex.Message));
-            }
-            catch (NotFoundException ex)
-            {
-                return Results.NotFound(ApiResponse<object>.Fail(ex.Message));
-            }
-            catch (ConflictException ex)
-            {
-                return Results.Conflict(ApiResponse<object>.Fail(ex.Message));
-            }
-            catch
-            {
-                return Results.Json(ApiResponse<object>.Fail("Internal server error."), statusCode: 500);
-            }
+            var updated = await service.UpdateAsync(categoryId, dto, ct);
+            return Results.Ok(ApiResponse<CategoryResponseDto>.Ok(updated, "Category updated."));
         });
 
         // DELETE /categories/{id} (Soft delete)
@@ -94,23 +53,8 @@ public static class CategoryEndpoints
             if (!Guid.TryParse(id, out var categoryId))
                 return Results.BadRequest(ApiResponse<object>.Fail("Invalid id format."));
 
-            try
-            {
-                await service.DeleteAsync(categoryId, ct);
-                return Results.Ok(ApiResponse<object>.OkEmpty("Category deleted."));
-            }
-            catch (NotFoundException ex)
-            {
-                return Results.NotFound(ApiResponse<object>.Fail(ex.Message));
-            }
-            catch (ConflictException ex)
-            {
-                return Results.Conflict(ApiResponse<object>.Fail(ex.Message));
-            }
-            catch
-            {
-                return Results.Json(ApiResponse<object>.Fail("Internal server error."), statusCode: 500);
-            }
+            await service.DeleteAsync(categoryId, ct);
+            return Results.Ok(ApiResponse<object>.OkEmpty("Category deleted."));
         });
 
         return app;
