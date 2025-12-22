@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using SmartCommerce.Api.Endpoints;
+using SmartCommerce.Api.Middlewares;
 using SmartCommerce.Application.Abstractions.Repositories;
 using SmartCommerce.Application.Abstractions.Services;
 using SmartCommerce.Application.Common;
@@ -24,9 +25,11 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 // DI: Repositories
 builder.Services.AddScoped<ICategoryRepository, EfCategoryRepository>();
+builder.Services.AddScoped<IProductRepository, EfProductRepository>();
 
 // DI: Services
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 // Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -35,7 +38,7 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
-app.UseMiddleware<SmartCommerce.Api.Middlewares.ExceptionHandlingMiddleware>();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -50,7 +53,8 @@ app.MapGet("/health", () =>
     return Results.Ok(ApiResponse<object>.Ok(payload, "Service is running"));
 });
 
-// Categories endpoints
+// Endpoints
 app.MapCategoryEndpoints();
+app.MapProductEndpoints();
 
 app.Run();
