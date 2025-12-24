@@ -44,6 +44,12 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPasswordHasher, SmartCommerce.Infrastructure.Security.PasswordHasher>();
 
+builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
+builder.Services.AddScoped<IReviewRepository, EfReviewRepository>();
+
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+
 
 // JWT Auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -132,6 +138,9 @@ app.MapGet("/health", () =>
 app.MapAuthEndpoints();
 app.MapCategoryEndpoints();
 app.MapProductEndpoints();
+app.MapOrderEndpoints();
+app.MapReviewEndpoints();
+
 
 if (app.Environment.IsDevelopment())
 {
