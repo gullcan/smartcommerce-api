@@ -494,3 +494,7 @@ $RECYCLE.BIN/
 *.db-wal
 *.db-journal
 *.db.bak
+
+# Docker local data
+/data/
+.env

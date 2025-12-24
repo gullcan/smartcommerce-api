@@ -1,0 +1,15 @@
+services:
+  api:
+    build: .
+    container_name: smartcommerce_api
+    ports:
+      - "5276:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__Default: "Data Source=/data/smartcommerce.db"
+      Jwt__Key: "${JWT_KEY}"
+      Jwt__Issuer: "${JWT_ISSUER}"
+      Jwt__Audience: "${JWT_AUDIENCE}"
+    volumes:
+      - ./data:/data
+      - ./data/dpkeys:/root/.aspnet/DataProtection-Keys
