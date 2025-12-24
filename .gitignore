@@ -487,3 +487,10 @@ $RECYCLE.BIN/
 *.db
 *.db-shm
 *.db-wal
+
+# Local SQLite DB files (do not commit)
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.db.bak
