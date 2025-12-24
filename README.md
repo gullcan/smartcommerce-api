@@ -44,8 +44,9 @@ Uygulama ilk çalıştığında seeding ile admin kullanıcı eklenir (DB boşsa
 ### Swagger Authorization
 1. `POST /auth/login` ile token al
 2. Swagger’da **Authorize** butonuna tıkla
-3. Şu formatta yapıştır:
-   `Bearer <accessToken>`
+3. Açılan "Value" alanına **tokeni yapıştır**
+
+> Not: Bazı Swagger kurulumlarında `Bearer ` prefix’ini elle yazman gerekir (yani `Bearer <token>`). Sende direkt token yapıştırmak yeterli.
 
 ## Authorization
 
