@@ -31,6 +31,10 @@ public static class CategoryEndpoints
         // POST /categories (Admin only)
         group.MapPost("/", async (CategoryCreateDto dto, ICategoryService service, CancellationToken ct) =>
         {
+            var errors = dto.Validate();
+            if (errors.Count > 0)
+                return Results.BadRequest(ApiResponse<object>.Fail("Validation failed.", errors));
+
             var created = await service.CreateAsync(dto, ct);
 
             return Results.Created($"/categories/{created.Id}",
@@ -43,6 +47,10 @@ public static class CategoryEndpoints
         {
             if (!Guid.TryParse(id, out var categoryId))
                 return Results.BadRequest(ApiResponse<object>.Fail("Invalid id format."));
+
+            var errors = dto.Validate();
+            if (errors.Count > 0)
+                return Results.BadRequest(ApiResponse<object>.Fail("Validation failed.", errors));
 
             var updated = await service.UpdateAsync(categoryId, dto, ct);
             return Results.Ok(ApiResponse<CategoryResponseDto>.Ok(updated, "Category updated."));

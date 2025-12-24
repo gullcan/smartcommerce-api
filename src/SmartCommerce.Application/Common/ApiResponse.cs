@@ -6,12 +6,18 @@ public sealed class ApiResponse<T>
     public string Message { get; init; } = "";
     public T? Data { get; init; }
 
+    // Validation / field errors gibi durumlar için
+    public Dictionary<string, string[]>? Errors { get; init; }
+
     public static ApiResponse<T> Ok(T data, string message = "OK")
-        => new ApiResponse<T> { Success = true, Message = message, Data = data };
+        => new() { Success = true, Message = message, Data = data };
 
     public static ApiResponse<T> OkEmpty(string message = "OK")
-        => new ApiResponse<T> { Success = true, Message = message, Data = default };
+        => new() { Success = true, Message = message, Data = default };
 
     public static ApiResponse<T> Fail(string message)
-        => new ApiResponse<T> { Success = false, Message = message, Data = default };
+        => new() { Success = false, Message = message, Data = default };
+
+    public static ApiResponse<T> Fail(string message, Dictionary<string, string[]> errors)
+        => new() { Success = false, Message = message, Data = default, Errors = errors };
 }

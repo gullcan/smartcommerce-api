@@ -31,6 +31,10 @@ public static class ProductEndpoints
         // POST /products (Admin only)
         group.MapPost("/", async (ProductCreateDto dto, IProductService service, CancellationToken ct) =>
         {
+            var errors = dto.Validate();
+if (errors.Count > 0)
+    return Results.BadRequest(ApiResponse<object>.Fail("Validation failed.", errors));
+
             var created = await service.CreateAsync(dto, ct);
 
             return Results.Created($"/products/{created.Id}",

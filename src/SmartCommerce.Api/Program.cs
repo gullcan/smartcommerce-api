@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using SmartCommerce.Api.Endpoints;
 using SmartCommerce.Api.Middlewares;
@@ -12,6 +13,7 @@ using SmartCommerce.Application.Abstractions.Services;
 using SmartCommerce.Application.Common;
 using SmartCommerce.Application.Services;
 using SmartCommerce.Infrastructure.Persistence;
+using SmartCommerce.Infrastructure.Security;
 using SmartCommerce.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,6 +42,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 // DI: Security
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IPasswordHasher, SmartCommerce.Infrastructure.Security.PasswordHasher>();
+
 
 // JWT Auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -128,5 +132,13 @@ app.MapGet("/health", () =>
 app.MapAuthEndpoints();
 app.MapCategoryEndpoints();
 app.MapProductEndpoints();
+
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+    await DbSeeder.SeedAsync(db, hasher);
+}
 
 app.Run();

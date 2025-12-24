@@ -2,7 +2,6 @@ using SmartCommerce.Application.Abstractions.Repositories;
 using SmartCommerce.Application.Abstractions.Security;
 using SmartCommerce.Application.Abstractions.Services;
 using SmartCommerce.Application.Common.Exceptions;
-using SmartCommerce.Application.Common.Security;
 using SmartCommerce.Application.DTOs.Auth;
 using SmartCommerce.Domain.Entities;
 
@@ -13,10 +12,13 @@ public sealed class AuthService : IAuthService
     private readonly IUserRepository _users;
     private readonly IJwtTokenService _jwt;
 
-    public AuthService(IUserRepository users, IJwtTokenService jwt)
+    private readonly IPasswordHasher _hasher;
+
+    public AuthService(IUserRepository users, IJwtTokenService jwt, IPasswordHasher hasher)
     {
         _users = users;
         _jwt = jwt;
+        _hasher = hasher;
     }
 
     public async Task<AuthResponseDto> RegisterAsync(AuthRegisterDto dto, CancellationToken ct)
@@ -43,7 +45,7 @@ public sealed class AuthService : IAuthService
         {
             Username = username,
             Email = email,
-            PasswordHash = PasswordHasher.Hash(dto.Password),
+            PasswordHash = _hasher.Hash(dto.Password),
             Role = "User"
         };
 
@@ -65,7 +67,7 @@ public sealed class AuthService : IAuthService
         if (user is null)
             throw new UnauthorizedAccessException("Invalid credentials.");
 
-        var ok = PasswordHasher.Verify(dto.Password, user.PasswordHash);
+        var ok = _hasher.Verify(dto.Password, user.PasswordHash);
         if (!ok)
             throw new UnauthorizedAccessException("Invalid credentials.");
 
