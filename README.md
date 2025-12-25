@@ -72,11 +72,11 @@ Tüm endpoint’ler standart bir response döndürür:
 
 ### Orders
 
-* `GET /orders` (**AdminOnly** veya projendeki kurala göre)
+* `GET /orders` (**AdminOnly**)
 * `GET /orders/{id}` (Owner/Admin)
 * `GET /orders/mine` (User)
 * `POST /orders` (User)
-* `PATCH /orders/{id}/status` (**AdminOnly** veya projendeki kurala göre)
+* `PATCH /orders/{id}/status` (**AdminOnly**)
 
 ### Reviews (RESTful kuralına uygun)
 
