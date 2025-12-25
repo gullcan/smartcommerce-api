@@ -10,7 +10,8 @@ public static class ReviewEndpoints
 {
     public static IEndpointRouteBuilder MapReviewEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/reviews").WithTags("Reviews");
+    
+        var restful = app.MapGroup("/products/{productId}/reviews").WithTags("Reviews");
 
         static Guid GetUserId(ClaimsPrincipal user)
         {
@@ -23,7 +24,9 @@ public static class ReviewEndpoints
             return id;
         }
 
-        group.MapGet("/product/{productId}", async (string productId, IReviewService service, CancellationToken ct) =>
+
+        // RESTful: GET /products/{productId}/reviews
+        restful.MapGet("", async (string productId, IReviewService service, CancellationToken ct) =>
         {
             if (!Guid.TryParse(productId, out var pid))
                 return Results.BadRequest(ApiResponse<object>.Fail("Invalid productId."));
@@ -32,17 +35,29 @@ public static class ReviewEndpoints
             return Results.Ok(ApiResponse<IReadOnlyList<ReviewResponseDto>>.Ok(data, "Reviews retrieved."));
         });
 
-        group.MapPost("/", async (ReviewCreateDto dto, HttpContext http, IReviewService service, CancellationToken ct) =>
+        
+        // RESTful: POST /products/{productId}/reviews
+        // Not: Bu endpoint body'deki dto'yu aynen kullanır. (Body'de productId alanı varsa zaten service onu kullanacaktır.)
+        restful.MapPost("", async (string productId, ReviewCreateDto dto, HttpContext http, IReviewService service, CancellationToken ct) =>
         {
+            if (!Guid.TryParse(productId, out var pid))
+                return Results.BadRequest(ApiResponse<object>.Fail("Invalid productId."));
+
+            dto = dto with { ProductId = pid.ToString() };
+
             var errors = dto.Validate();
+            
             if (errors.Count > 0)
                 return Results.BadRequest(ApiResponse<object>.Fail("Validation failed.", errors));
 
             var created = await service.CreateAsync(GetUserId(http.User), dto, ct);
-            return Results.Created($"/reviews/{created.Id}", ApiResponse<ReviewResponseDto>.Ok(created, "Review created."));
+            return Results.Created($"/products/{pid}/reviews/{created.Id}",
+                ApiResponse<ReviewResponseDto>.Ok(created, "Review created."));
         }).RequireAuthorization();
 
-        group.MapPut("/{id}", async (string id, ReviewUpdateDto dto, HttpContext http, IReviewService service, CancellationToken ct) =>
+
+        // RESTful: PUT /products/{productId}/reviews/{id}
+        restful.MapPut("/{id}", async (string id, ReviewUpdateDto dto, HttpContext http, IReviewService service, CancellationToken ct) =>
         {
             if (!Guid.TryParse(id, out var rid))
                 return Results.BadRequest(ApiResponse<object>.Fail("Invalid id format."));
@@ -54,8 +69,10 @@ public static class ReviewEndpoints
             var updated = await service.UpdateAsync(rid, GetUserId(http.User), http.User.IsInRole("Admin"), dto, ct);
             return Results.Ok(ApiResponse<ReviewResponseDto>.Ok(updated, "Review updated."));
         }).RequireAuthorization();
+       
 
-        group.MapDelete("/{id}", async (string id, HttpContext http, IReviewService service, CancellationToken ct) =>
+        // RESTful: DELETE /products/{productId}/reviews/{id}
+        restful.MapDelete("/{id}", async (string id, HttpContext http, IReviewService service, CancellationToken ct) =>
         {
             if (!Guid.TryParse(id, out var rid))
                 return Results.BadRequest(ApiResponse<object>.Fail("Invalid id format."));
