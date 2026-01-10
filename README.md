@@ -136,6 +136,16 @@ Tüm endpoint’ler standart bir response döndürür:
 {"success":false,"message":"Unexpected error.","data":null}
 ```
 
+## Run Locally (VS Code Terminal)
+
+```bash
+dotnet build
+
+cd src/SmartCommerce.Api
+
+dotnet run
+```
+
 ## Logging
 
 * .NET built-in logging kullanılır.
@@ -153,3 +163,12 @@ docker compose up --build
 
 Swagger: `http://localhost:5276/swagger`
 Health: `GET /health`
+
+
+## Default Admin Account (Seeded)
+
+```json
+{
+  "email": "admin@smartcommerce.local",
+  "password": "Admin123!"
+}
